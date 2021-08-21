@@ -1,0 +1,56 @@
+menu "zlib Configuration"
+
+    config ENABLE_GZIP_ENCODING
+        bool "Enable GZIP encoding support"
+        default y
+        help
+            Optional GZIP encoding 
+            Enable when data is to be archived to .gz format
+    
+    config GZIP_ENCODING
+        int
+        default 0
+        default 16 if ENABLE_GZIP_ENCODING
+
+    config WINDOW_SIZE
+        int "Dictionary window size"
+        range 8 15
+        default 13
+        help
+            Base two logarithm of the window size: the size of the history buffer
+            looked at by the algorithm for self-similar data it can compress.
+            Larger values of this parameter result in better compression at the expense of memory usage.
+            Note: 15 => 2^15 = 32768 bytes
+    
+    config MEM_LEVEL
+        int "Memory Level: See help"
+        range 1 9
+        default 4
+        help
+            How much memory should be allocated for the internal compression state
+            1 for using minimum memory but is slow and reduces compression ratio.
+            9 for using maximum memory for optimal speed.
+
+    config COMPRESSION_LEVEL
+        int "Compression level: See help"
+        range 0 9
+        default 9
+        help
+            Denotes the compression level to be achieved.
+            0 for no compression
+            1 for best speed, low compression
+            9 for best compression, low speed
+
+    config COMPRESSION_STRATEGY
+        int "Compression Strategy: See help"
+        range 0 5
+        default 0
+        help
+            Compression strategy depending on the type of data
+            0 for Default (for normal data)
+            1 for Filtered (for data produced by a filter or predictor)
+            2 for Huffman only (force more Huffman encoding, less string matching)
+            3 for RLE (Similar to Huffman only, best suited for PNG format)
+            4 for Fixed (No Dynamic Huffman encoding, suited for simpler applications)
+
+endmenu
