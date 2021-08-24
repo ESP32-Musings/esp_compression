@@ -3,6 +3,6 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := spiffs_zlib
+PROJECT_NAME := spiffs_brotli
 EXTRA_COMPONENT_DIRS += ../../components
 include $(IDF_PATH)/make/project.mk

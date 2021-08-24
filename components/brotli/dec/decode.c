@@ -4,7 +4,7 @@
    See file LICENSE for detail or copy at https://opensource.org/licenses/MIT
 */
 
-#include <brotli/decode.h>
+#include "decode.h"
 
 #include <stdlib.h>  /* free, malloc */
 #include <string.h>  /* memcpy, memset */
@@ -180,7 +180,7 @@ static BROTLI_INLINE void memmove16(uint8_t* dst, uint8_t* src) {
 /* Decodes a number in the range [0..255], by reading 1 - 11 bits. */
 static BROTLI_NOINLINE BrotliDecoderErrorCode DecodeVarLenUint8(
     BrotliDecoderState* s, BrotliBitReader* br, uint32_t* value) {
-  uint32_t bits;
+  uint32_t bits = 0;
   switch (s->substate_decode_uint8) {
     case BROTLI_STATE_DECODE_UINT8_NONE:
       if (BROTLI_PREDICT_FALSE(!BrotliSafeReadBits(br, 1, &bits))) {
@@ -482,7 +482,7 @@ static BrotliDecoderErrorCode ReadSimpleHuffmanSymbols(
   uint32_t i = h->sub_loop_counter;
   uint32_t num_symbols = h->symbol;
   while (i <= num_symbols) {
-    uint32_t v;
+    uint32_t v = 0;
     if (BROTLI_PREDICT_FALSE(!BrotliSafeReadBits(br, max_bits, &v))) {
       h->sub_loop_counter = i;
       h->substate_huffman = BROTLI_STATE_HUFFMAN_SIMPLE_READ;
@@ -697,8 +697,8 @@ static BrotliDecoderErrorCode ReadCodeLengthCodeLengths(BrotliDecoderState* s) {
   uint32_t i = h->sub_loop_counter;
   for (; i < BROTLI_CODE_LENGTH_CODES; ++i) {
     const uint8_t code_len_idx = kCodeLengthCodeOrder[i];
-    uint32_t ix;
-    uint32_t v;
+    uint32_t ix = 0;
+    uint32_t v = 0;
     if (BROTLI_PREDICT_FALSE(!BrotliSafeGetBits(br, 4, &ix))) {
       uint32_t available_bits = BrotliGetAvailableBits(br);
       if (available_bits != 0) {
