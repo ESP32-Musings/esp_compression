@@ -9,7 +9,7 @@
 #ifndef BROTLI_ENC_STATIC_DICT_LUT_H_
 #define BROTLI_ENC_STATIC_DICT_LUT_H_
 
-#include "types.h"
+#include "brotli_types.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {

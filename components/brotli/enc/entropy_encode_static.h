@@ -11,7 +11,7 @@
 
 #include "../common/constants.h"
 #include "../common/platform.h"
-#include "types.h"
+#include "brotli_types.h"
 #include "./write_bits.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)

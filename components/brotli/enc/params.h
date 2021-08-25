@@ -9,7 +9,7 @@
 #ifndef BROTLI_ENC_PARAMS_H_
 #define BROTLI_ENC_PARAMS_H_
 
-#include "encode.h"
+#include "brotli_encode.h"
 #include "./encoder_dict.h"
 
 typedef struct BrotliHasherParams {

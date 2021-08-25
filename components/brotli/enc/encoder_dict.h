@@ -9,7 +9,7 @@
 
 #include "../common/dictionary.h"
 #include "../common/platform.h"
-#include "types.h"
+#include "brotli_types.h"
 #include "./static_dict_lut.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)

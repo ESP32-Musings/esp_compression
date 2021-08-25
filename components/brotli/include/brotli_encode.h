@@ -12,8 +12,8 @@
 #ifndef BROTLI_ENC_ENCODE_H_
 #define BROTLI_ENC_ENCODE_H_
 
-#include "port.h"
-#include "types.h"
+#include "./brotli_port.h"
+#include "./brotli_types.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C"

@@ -12,7 +12,7 @@
 #include "../common/constants.h"
 #include "../common/context.h"
 #include "../common/platform.h"
-#include "types.h"
+#include "brotli_types.h"
 #include "./bit_cost.h"
 #include "./block_splitter.h"
 #include "./cluster.h"

@@ -8,7 +8,7 @@
 
 #include "./utf8_util.h"
 
-#include "types.h"
+#include "brotli_types.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {

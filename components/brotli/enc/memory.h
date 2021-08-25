@@ -12,7 +12,7 @@
 #include <string.h>  /* memcpy */
 
 #include "../common/platform.h"
-#include "types.h"
+#include "brotli_types.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {

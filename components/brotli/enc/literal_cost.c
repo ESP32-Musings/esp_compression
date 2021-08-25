@@ -10,7 +10,7 @@
 #include "./literal_cost.h"
 
 #include "../common/platform.h"
-#include "types.h"
+#include "brotli_types.h"
 #include "./fast_log.h"
 #include "./utf8_util.h"
 

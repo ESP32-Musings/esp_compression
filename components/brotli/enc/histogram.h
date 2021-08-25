@@ -14,7 +14,7 @@
 #include "../common/constants.h"
 #include "../common/context.h"
 #include "../common/platform.h"
-#include "types.h"
+#include "brotli_types.h"
 #include "./block_splitter.h"
 #include "./command.h"
 

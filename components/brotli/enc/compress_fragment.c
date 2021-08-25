@@ -18,7 +18,7 @@
 
 #include "../common/constants.h"
 #include "../common/platform.h"
-#include "types.h"
+#include "brotli_types.h"
 #include "./brotli_bit_stream.h"
 #include "./entropy_encode.h"
 #include "./fast_log.h"

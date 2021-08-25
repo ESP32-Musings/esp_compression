@@ -12,7 +12,7 @@
 #include <string.h>  /* memcpy */
 
 #include "../common/platform.h"
-#include "types.h"
+#include "brotli_types.h"
 #include "./memory.h"
 #include "./quality.h"
 
