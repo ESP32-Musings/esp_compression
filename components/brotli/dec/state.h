@@ -13,7 +13,7 @@
 #include "../common/dictionary.h"
 #include "../common/platform.h"
 #include "../common/transform.h"
-#include "brotli_types.h"
+#include "brotli/types.h"
 #include "./bit_reader.h"
 #include "./huffman.h"
 

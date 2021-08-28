@@ -8,8 +8,8 @@
 #ifndef BROTLI_COMMON_TRANSFORM_H_
 #define BROTLI_COMMON_TRANSFORM_H_
 
-#include "brotli_port.h"
-#include "brotli_types.h"
+#include "brotli/port.h"
+#include "brotli/types.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {

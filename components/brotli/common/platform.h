@@ -25,8 +25,8 @@
 
 #include <string.h>  /* memcpy */
 
-#include "brotli_port.h"
-#include "brotli_types.h"
+#include "brotli/port.h"
+#include "brotli/types.h"
 
 #if defined(OS_LINUX) || defined(OS_CYGWIN) || defined(__EMSCRIPTEN__)
 #include <endian.h>

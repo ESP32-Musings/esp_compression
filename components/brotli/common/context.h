@@ -88,8 +88,8 @@
 #ifndef BROTLI_COMMON_CONTEXT_H_
 #define BROTLI_COMMON_CONTEXT_H_
 
-#include "brotli_port.h"
-#include "brotli_types.h"
+#include "brotli/port.h"
+#include "brotli/types.h"
 
 typedef enum ContextType {
   CONTEXT_LSB6 = 0,

@@ -6,7 +6,7 @@
 
 #include "./command.h"
 
-#include "brotli_types.h"
+#include "brotli/types.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {

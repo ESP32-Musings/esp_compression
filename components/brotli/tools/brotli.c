@@ -22,8 +22,8 @@
 
 #include "../common/constants.h"
 #include "../common/version.h"
-#include "brotli_decode.h"
-#include "brotli_encode.h"
+#include "brotli/decode.h"
+#include "brotli/encode.h"
 
 #if !defined(_WIN32)
 #include <unistd.h>

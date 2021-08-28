@@ -13,15 +13,18 @@
 #include "esp_log.h"
 #include "esp_spiffs.h"
 
-#include "brotli_decode.h"
-#include "brotli_encode.h"
+#include "brotli/decode.h"
+#include "brotli/encode.h"
 
-#define DEFAULT_LGWIN (22)
-#define BROTLI_BUFFER (819)2
-#define COMPRESSION_QUALITY (1)   // Range: 1 - 11 (max. compression); NOTE: ESP32 crashes for > 1
+// Range: 1 - 11 (max. compression); NOTE: ESP32 crashes for > 1
+#define COMPRESSION_QUALITY (1)
+#define BROTLI_BUFFER (8192)
+
+#define DEMO_TXT "/spiffs/demo.txt"
+#define DEMO_TXT_BR "/spiffs/demo.txt.br"
+#define DEMO_U_TXT "/spiffs/demo_u.txt"
 
 static const char *TAG = "spiffs_brotli";
-const char *base_path = "/spiffs/";
  
 esp_err_t init_spiffs(void)
 {
@@ -59,13 +62,14 @@ esp_err_t init_spiffs(void)
     return ESP_OK;
 }
 
-void get_spiffs_content(const char *base_path)
+void get_spiffs_content(void)
 {
+    const char *base_path = "/spiffs/";
     struct dirent *de;
     struct stat st;
     DIR *dr = opendir(base_path);
 
-    char *file_path = malloc(256 * sizeof(char));
+    char *file_path = malloc(512 * sizeof(char));
 
     if (dr == NULL) {
         ESP_LOGE(TAG, "Could not open current directory" );
@@ -94,18 +98,17 @@ int get_file_size(char *file_path)
 void decompress_file(void *pvParameter)
 {
     char *fileName = (char *)pvParameter;
-    int lgwin = DEFAULT_LGWIN;
-    int bufferSize = BROTLI_BUFFER;
-    uint8_t *buffer = calloc(bufferSize, sizeof(uint8_t));
 
     FILE *file = fopen(fileName, "rb");
     int fileSize = get_file_size(fileName);
 
+    uint8_t *buffer = calloc(BROTLI_BUFFER, sizeof(uint8_t));
     char *inBuffer = calloc(fileSize, sizeof(char));
-    fread(inBuffer, fileSize, 1, file);
+
+    fread(inBuffer, 1, fileSize, file);
     fclose(file);
 
-    size_t decodedSize = bufferSize;
+    size_t decodedSize = BROTLI_BUFFER;
     
     ESP_LOGI(TAG, "Starting Decompression...");
     int brotliStatus = BrotliDecoderDecompress(fileSize, (const uint8_t *)inBuffer, &decodedSize, buffer);
@@ -116,10 +119,13 @@ void decompress_file(void *pvParameter)
         goto CLEANUP;
     }
 
-    FILE *dest = fopen("/spiffs/demo_u.txt", "wb");
-    fwrite((char *)buffer, decodedSize, 1, dest);
+    ESP_LOGI(TAG, "Decoded buffer size: %zu", decodedSize);
 
-    get_spiffs_content(base_path);
+    FILE *dest = fopen(DEMO_U_TXT, "w");
+    fwrite(buffer, 1, decodedSize, dest);
+    fclose(dest);
+
+    get_spiffs_content();
 
 CLEANUP: 
     free(inBuffer);
@@ -130,21 +136,19 @@ CLEANUP:
 void compress_file(void *pvParameter)
 {
     char *fileName = (char *)pvParameter;
-    int lgwin = DEFAULT_LGWIN;
-    int bufferSize = BROTLI_BUFFER;
-    uint8_t *buffer = calloc(bufferSize, sizeof(uint8_t));
+    uint8_t *buffer = calloc(BROTLI_BUFFER, sizeof(uint8_t));
 
-    FILE *file = fopen(fileName, "rb");
+    FILE *source = fopen(fileName, "r");
     int fileSize = get_file_size(fileName);
 
     char *inBuffer = calloc(fileSize, sizeof(char));
-    fread(inBuffer, fileSize, 1, file);
-    fclose(file);
+    fread(inBuffer, 1, fileSize, source);
+    fclose(source);
 
-    size_t encodedSize = bufferSize;
+    size_t encodedSize = BROTLI_BUFFER;
 
     ESP_LOGI(TAG, "Starting Compression...");
-    bool brotliStatus = BrotliEncoderCompress(COMPRESSION_QUALITY, lgwin, BROTLI_MODE_GENERIC, 
+    bool brotliStatus = BrotliEncoderCompress(COMPRESSION_QUALITY, BROTLI_DEFAULT_WINDOW, BROTLI_DEFAULT_MODE, 
                                                 fileSize, (const uint8_t *)inBuffer, &encodedSize, buffer);
     if(!brotliStatus)
     {
@@ -152,13 +156,14 @@ void compress_file(void *pvParameter)
         goto CLEANUP;
     }
 
-    FILE *dest = fopen("/spiffs/demo.txt.br", "wb");
-    fwrite((char *)buffer, encodedSize, 1, dest);
+    FILE *dest = fopen(DEMO_TXT_BR, "wb");
+    fwrite(buffer, 1, encodedSize, dest);
+    fclose(dest);
 
     ESP_LOGI(TAG, "Compression-> Before: %d | After: %d", fileSize, encodedSize);
     ESP_LOGI(TAG, "Compression Ratio: %0.2f", (float)fileSize / encodedSize);
 
-    get_spiffs_content(base_path);
+    get_spiffs_content();
 
 CLEANUP: 
     free(inBuffer);
@@ -171,7 +176,7 @@ void app_main(void)
 {
     ESP_ERROR_CHECK(init_spiffs());
     ESP_LOGI(TAG, "Opening files for compression");
-
-    char *fileName = "/spiffs/demo.txt";
-    xTaskCreate(compress_file, "compress", 16384, (void *)fileName, 5, NULL);
+    
+    // xTaskCreate(compress_file, "compress", 16384, (void *)DEMO_TXT, 5, NULL);
+    xTaskCreate(decompress_file, "decompress", 16384, (void *)DEMO_TXT_BR, 5, NULL);
 }
