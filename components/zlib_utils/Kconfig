@@ -15,17 +15,17 @@ menu "zlib Configuration"
     config WINDOW_SIZE
         int "Dictionary window size"
         range 8 15
-        default 13
+        default 12
         help
             Base two logarithm of the window size: the size of the history buffer
             looked at by the algorithm for self-similar data it can compress.
             Larger values of this parameter result in better compression at the expense of memory usage.
-            Note: 15 => 2^15 = 32768 bytes
+            Note: 12 => 2^12 = 4096 bytes
     
     config MEM_LEVEL
         int "Memory Level: See help"
         range 1 9
-        default 4
+        default 3
         help
             How much memory should be allocated for the internal compression state
             1 for using minimum memory but is slow and reduces compression ratio.
@@ -33,10 +33,11 @@ menu "zlib Configuration"
 
     config COMPRESSION_LEVEL
         int "Compression level: See help"
-        range 0 9
-        default 9
+        range -1 9
+        default -1
         help
             Denotes the compression level to be achieved.
+            -1 for default compression
             0 for no compression
             1 for best speed, low compression
             9 for best compression, low speed

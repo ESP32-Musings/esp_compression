@@ -11,14 +11,17 @@
 
 #include "esp_err.h"
 #include "esp_log.h"
+#include "esp_system.h"
+
 #include "esp_spiffs.h"
+#include "esp_timer.h"
 
 #include "brotli/decode.h"
 #include "brotli/encode.h"
 
 // Range: 1 - 11 (max. compression); NOTE: ESP32 crashes for > 1
 #define COMPRESSION_QUALITY (1)
-#define BROTLI_BUFFER (8192)
+#define BROTLI_BUFFER (4096)
 
 #define DEMO_TXT "/spiffs/demo.txt"
 #define DEMO_TXT_BR "/spiffs/demo.txt.br"
@@ -95,12 +98,10 @@ int get_file_size(char *file_path)
     return -1; 
 }
 
-void decompress_file(void *pvParameter)
+void decompress_file(void)
 {
-    char *fileName = (char *)pvParameter;
-
-    FILE *file = fopen(fileName, "rb");
-    int fileSize = get_file_size(fileName);
+    FILE *file = fopen(DEMO_TXT_BR, "rb");
+    int fileSize = get_file_size(DEMO_TXT_BR);
 
     uint8_t *buffer = calloc(BROTLI_BUFFER, sizeof(uint8_t));
     char *inBuffer = calloc(fileSize, sizeof(char));
@@ -109,49 +110,48 @@ void decompress_file(void *pvParameter)
     fclose(file);
 
     size_t decodedSize = BROTLI_BUFFER;
-    
     ESP_LOGI(TAG, "Starting Decompression...");
+    
+    int64_t start = esp_timer_get_time();     
     int brotliStatus = BrotliDecoderDecompress(fileSize, (const uint8_t *)inBuffer, &decodedSize, buffer);
+    int64_t end = esp_timer_get_time();
+    ESP_LOGI(TAG, "Decompression time: %lld", end - start);  
 
-    if (brotliStatus == BROTLI_DECODER_RESULT_ERROR)
-    {
+    if (brotliStatus == BROTLI_DECODER_RESULT_ERROR){
         ESP_LOGE(TAG, "Decompression Failed!");
         goto CLEANUP;
     }
-
-    ESP_LOGI(TAG, "Decoded buffer size: %zu", decodedSize);
 
     FILE *dest = fopen(DEMO_U_TXT, "w");
     fwrite(buffer, 1, decodedSize, dest);
     fclose(dest);
 
-    get_spiffs_content();
-
 CLEANUP: 
     free(inBuffer);
     free(buffer);
-    vTaskDelete(NULL);
 }
 
-void compress_file(void *pvParameter)
+void compress_file(void)
 {
-    char *fileName = (char *)pvParameter;
     uint8_t *buffer = calloc(BROTLI_BUFFER, sizeof(uint8_t));
 
-    FILE *source = fopen(fileName, "r");
-    int fileSize = get_file_size(fileName);
+    FILE *source = fopen(DEMO_TXT, "r");
+    int fileSize = get_file_size(DEMO_TXT);
 
     char *inBuffer = calloc(fileSize, sizeof(char));
     fread(inBuffer, 1, fileSize, source);
     fclose(source);
 
     size_t encodedSize = BROTLI_BUFFER;
+    ESP_LOGI(TAG, "Starting Compression...");  
 
-    ESP_LOGI(TAG, "Starting Compression...");
+    int64_t start = esp_timer_get_time();     
     bool brotliStatus = BrotliEncoderCompress(COMPRESSION_QUALITY, BROTLI_DEFAULT_WINDOW, BROTLI_DEFAULT_MODE, 
                                                 fileSize, (const uint8_t *)inBuffer, &encodedSize, buffer);
-    if(!brotliStatus)
-    {
+    int64_t end = esp_timer_get_time();
+    ESP_LOGI(TAG, "Compression time: %lld", end - start);  
+
+    if(!brotliStatus){
         ESP_LOGE(TAG, "Compression Failed!");
         goto CLEANUP;
     }
@@ -160,23 +160,24 @@ void compress_file(void *pvParameter)
     fwrite(buffer, 1, encodedSize, dest);
     fclose(dest);
 
-    ESP_LOGI(TAG, "Compression-> Before: %d | After: %d", fileSize, encodedSize);
     ESP_LOGI(TAG, "Compression Ratio: %0.2f", (float)fileSize / encodedSize);
-
-    get_spiffs_content();
 
 CLEANUP: 
     free(inBuffer);
     free(buffer);
-    vTaskDelete(NULL);
 }
 
 
 void app_main(void)
 {
-    ESP_ERROR_CHECK(init_spiffs());
     ESP_LOGI(TAG, "Opening files for compression");
-    
-    // xTaskCreate(compress_file, "compress", 16384, (void *)DEMO_TXT, 5, NULL);
-    xTaskCreate(decompress_file, "decompress", 16384, (void *)DEMO_TXT_BR, 5, NULL);
+    ESP_ERROR_CHECK(init_spiffs());
+
+    ESP_LOGI(TAG, "Free heap (Start): %d", esp_get_free_heap_size());
+
+    compress_file();
+    decompress_file();
+
+    ESP_LOGI(TAG, "Free heap (Minimum): %d", esp_get_minimum_free_heap_size());
+    get_spiffs_content();
 }

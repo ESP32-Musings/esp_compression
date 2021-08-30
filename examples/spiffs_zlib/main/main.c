@@ -7,12 +7,14 @@
 
 #include "esp_err.h"
 #include "esp_log.h"
+#include "esp_system.h"
+
 #include "esp_spiffs.h"
+#include "esp_timer.h"
 
 #include "zlib_utils.h"
 
 static const char *TAG = "spiffs_zlib";
-const char *base_path = "/spiffs/";
 
 esp_err_t init_spiffs(void)
 {
@@ -50,13 +52,14 @@ esp_err_t init_spiffs(void)
     return ESP_OK;
 }
 
-void get_spiffs_content(const char *base_path)
+void get_spiffs_content(void)
 {
+    const char *base_path = "/spiffs/";
     struct dirent *de;
     struct stat st;
     DIR *dr = opendir(base_path);
 
-    char *file_path = (char *)malloc(320 * sizeof(char));
+    char *file_path = (char *)malloc(512 * sizeof(char));
 
     if (dr == NULL) {
         ESP_LOGE(TAG, "Could not open current directory" );
@@ -74,6 +77,13 @@ void get_spiffs_content(const char *base_path)
     return;
 }
 
+/*
+    NOTE: The default configuration selected for zlib uses about 29 kB memory maximum.
+    It has the best (memory usage / compression ratio) factor.
+    The minimum was 26 kB during testing with a poor compression ratio.
+    Maybe we are still missing something and thus need to test on more files and different types.
+    The average time for compressing the demo text file was about 200 ms and for decompressing, about 450 ms.
+*/
 void app_main(void)
 {
     ESP_ERROR_CHECK(init_spiffs());
@@ -88,8 +98,10 @@ void app_main(void)
         ESP_LOGE(TAG, "Error opening file before compressing");
     }
 
+    int64_t start = esp_timer_get_time();
     zerr(deflate_file(source, comp));
-    ESP_LOGI(TAG, "Done compression");
+    int64_t end = esp_timer_get_time();
+    ESP_LOGI(TAG, "Done compression: Time - %lld us", end - start);
 
     fclose(source);
     fclose(comp);
@@ -103,11 +115,12 @@ void app_main(void)
         ESP_LOGE(TAG, "Error opening file before inflating");
     }
 
+    start = esp_timer_get_time();
     zerr(inflate_file(comp, decomp));
-    ESP_LOGI(TAG, "Done inflation");
-
+    end = esp_timer_get_time();
+    ESP_LOGI(TAG, "Done inflation: Time - %lld us", end - start);
+    
     fclose(comp);
     fclose(decomp);
-
-    get_spiffs_content(base_path);
+    get_spiffs_content();
 }
