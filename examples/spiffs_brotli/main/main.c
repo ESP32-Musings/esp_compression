@@ -98,7 +98,7 @@ int get_file_size(char *file_path)
     return -1; 
 }
 
-void decompress_file(void)
+void decompress_file(void* arg)
 {
     FILE *file = fopen(DEMO_TXT_BR, "rb");
     int fileSize = get_file_size(DEMO_TXT_BR);
@@ -112,6 +112,7 @@ void decompress_file(void)
     size_t decodedSize = BROTLI_BUFFER;
     ESP_LOGI(TAG, "Starting Decompression...");
     
+    // TODO: Decompress in chunks rather than all at once
     int64_t start = esp_timer_get_time();     
     int brotliStatus = BrotliDecoderDecompress(fileSize, (const uint8_t *)inBuffer, &decodedSize, buffer);
     int64_t end = esp_timer_get_time();
@@ -129,9 +130,12 @@ void decompress_file(void)
 CLEANUP: 
     free(inBuffer);
     free(buffer);
+
+    ESP_LOGI(TAG, "Free heap (Minimum): %d", esp_get_minimum_free_heap_size());
+    vTaskDelete(NULL);
 }
 
-void compress_file(void)
+void compress_file(void *arg)
 {
     uint8_t *buffer = calloc(BROTLI_BUFFER, sizeof(uint8_t));
 
@@ -145,6 +149,7 @@ void compress_file(void)
     size_t encodedSize = BROTLI_BUFFER;
     ESP_LOGI(TAG, "Starting Compression...");  
 
+    // TODO: Compress in chunks rather than compress the file all at once; will result a drop in compression ratio
     int64_t start = esp_timer_get_time();     
     bool brotliStatus = BrotliEncoderCompress(COMPRESSION_QUALITY, BROTLI_DEFAULT_WINDOW, BROTLI_DEFAULT_MODE, 
                                                 fileSize, (const uint8_t *)inBuffer, &encodedSize, buffer);
@@ -165,6 +170,9 @@ void compress_file(void)
 CLEANUP: 
     free(inBuffer);
     free(buffer);
+
+    ESP_LOGI(TAG, "Free heap (Minimum): %d", esp_get_minimum_free_heap_size());
+    vTaskDelete(NULL);
 }
 
 
@@ -175,9 +183,8 @@ void app_main(void)
 
     ESP_LOGI(TAG, "Free heap (Start): %d", esp_get_free_heap_size());
 
-    compress_file();
-    decompress_file();
+    xTaskCreate(compress_file, "compress", 8192, NULL, 5, NULL);
+    // xTaskCreate(decompress_file, "decompress", 8192, NULL, 5, NULL);
 
-    ESP_LOGI(TAG, "Free heap (Minimum): %d", esp_get_minimum_free_heap_size());
     get_spiffs_content();
 }
