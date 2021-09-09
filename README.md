@@ -19,8 +19,9 @@
 - Pros: Fast Compression and decompression (about 8x faster than zlib)
 - Cons: High binary size (about 600K of flash is used for brotli)
 - Cons: High memory usage for compression and decompression (about 50-60K at peak!)
-- Tried compressing the file in chunks (rather than all at once as given in example), but C/R fell with no significant in memory usage
+- Tried compressing the file in chunks (rather than all at once as given in example), but C/R fell with no significant decrease in memory usage
 
-### Other Attempts
+### Miscellaneous
 - Compiled [miniz](https://github.com/richgel999/miniz) but could not get it working; always seem to run out of RAM
 - WIP: Find more compression libraries with embedded systems support
+- Note: Flash memory has limited read/write cycles. Thus, file systems with wear-levelling should be used.
